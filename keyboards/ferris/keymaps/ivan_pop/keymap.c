@@ -13,18 +13,21 @@
 #define _ KC_TRNS
 
 enum layers {
-  _MAIN, // Main colemak-dh layout
-  _UKR,  // Qwerty layout used for ukrainian language compatibility
-  _UKR2, // Layout width additional keys that dont fit in previous one
-  _WMCL, // Layout for keys to control WM
-  _NUMS, // Number keys
-  _SYMS, // Symbol keys
-  _MOV,  // Movement keys
-  _MDIA  // Media keys
+  _MAIN,  // Main colemak-dh layout
+  _UKR,   // Qwerty layout used for ukrainian language compatibility
+  _UKR2,  // Layout width additional keys that dont fit in previous one
+  _GAME,  // Layout for game keys
+  _GAME2, // Layout with additional game keys
+  _WMCL,  // Layout for keys to control WM
+  _NUMS,  // Number keys
+  _SYMS,  // Symbol keys
+  _MOV,   // Movement keys
+  _MDIA   // Media keys
 };
 
 enum custom_keycodes {
   KC_TOGGLE = SAFE_RANGE,
+  KC_GAME = SAFE_RANGE + 1,
   _RGUI,
   _LGUI
 };
@@ -42,11 +45,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                     KC_Z, KC_X,         KC_C,         KC_V,              KC_B,   KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH,
                     KC_BSPC, LT(_NUMS, KC_TAB),   LT(_SYMS, KC_ENT), KC_SPC
                     ),
+
   [_UKR2] = LAYOUT(
                      _, _, _, _, _,       _, KC_BSLS, _, _, LSFT(KC_6),
                      _, _, _, _, _,       _, KC_LBRC, KC_RBRC, KC_BSLS, KC_QUOT,
                      _, _, _, _, _,       _, _, _, _, LSFT(KC_7),
                      _, _,       LCTL(KC_ENT), _
+                    ),
+  // Layouts that I update from time to time for specific games
+  [_GAME] = LAYOUT(
+                   KC_LALT,  KC_Q, KC_W, KC_E, KC_R,      KC_GAME, _, _, _, _,
+                   KC_LCTL, KC_A, KC_S, KC_D, KC_TAB,     _, _, _, _, _,
+                   KC_LSFT, KC_X, KC_F, KC_G, KC_C,       _, _, _, _, _,
+                   KC_SPC, LT(_GAME2, KC_ENT),            _, _
+                   ),
+  [_GAME2] = LAYOUT(
+                    KC_8, KC_7, KC_6, KC_5, KC_9,       _, _, _, _, _,
+                    KC_4, KC_3, KC_2, KC_1, KC_0,       _, _, _, _, _,
+                    _, _, _, _, _,       _, _, _, _, _,
+                    _, _,       _, _
                     ),
   [_WMCL] = LAYOUT(
                    _, _, _, _, _, _, _, _, _, _,
@@ -55,7 +72,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                    _, _ ,_, _
                    ),
   [_NUMS] = LAYOUT(
-                   KC_ESC, _,            KC_DOWN,      KC_UP, KC_BTN1,                              KC_PMNS, KC_7,    KC_8, KC_9, KC_EQL,
+                   KC_ESC, KC_GAME,            KC_DOWN,      KC_UP, KC_BTN1,                              KC_PMNS, KC_7,    KC_8, KC_9, KC_EQL,
                    MO(_MDIA),      LALT_T(KC_R), LSFT_T(KC_S), LCTL_T(KC_CAPS), KC_TOGGLE, KC_PPLS, RCTL_T(KC_4), RSFT_T(KC_5), RALT_T(KC_6), KC_0,
                    MO(_MOV),      _,            _,            _,                       _,       KC_PAST, KC_1, KC_2, KC_3, KC_SLSH,
                                          RESET,            _,                       KC_LPRN, KC_RPRN
@@ -81,6 +98,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                    ),
 };
 
+// TODO: I think I can make scheme wrapper for things like these
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
   case KC_TOGGLE:
@@ -97,7 +115,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         tap_code(KC_F14);
       }
     }
-    return false;
+    break;
+  case KC_GAME:
+    if (record->event.pressed) {
+      // Toggle layer from game to normal layout
+      if (layer_state_is(_GAME)) {
+        layer_off(_GAME);
+        layer_on(_MAIN);
+      }
+      else {
+        layer_on(_GAME);
+        layer_off(_MAIN);
+      }
+    }
     break;
   }
   return true;
